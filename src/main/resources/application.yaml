@@ -29,3 +29,7 @@ logging:
   level:
     root: WARN
     com.articles.NewsDownloader: DEBUG
+
+news-downloader:
+  blacklist: "blacklist.txt"
+  article-url: "https://api.spaceflightnewsapi.net/v3/articles"
