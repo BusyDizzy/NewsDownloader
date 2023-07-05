@@ -31,5 +31,8 @@ logging:
     com.articles.NewsDownloader: DEBUG
 
 news-downloader:
-  blacklist: "blacklist.txt"
   article-url: "https://api.spaceflightnewsapi.net/v3/articles"
+  articles:
+      limit: 10
+      skipped: 0
+  blacklist: "blacklist.txt"

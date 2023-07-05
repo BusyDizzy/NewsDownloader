@@ -22,13 +22,13 @@ public class Article {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "title")
+    @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "news_site")
+    @Column(name = "news_site", nullable = false)
     private String newsSite;
 
-    @Column(name = "published_date")
+    @Column(name = "published_date", nullable = false)
     private LocalDateTime publishedAt;
 
     @Column(name = "article", columnDefinition = "TEXT")

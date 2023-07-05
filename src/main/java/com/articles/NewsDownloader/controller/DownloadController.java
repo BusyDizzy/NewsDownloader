@@ -4,9 +4,9 @@ import com.articles.NewsDownloader.dto.ArticleDTO;
 import com.articles.NewsDownloader.model.Article;
 import com.articles.NewsDownloader.repository.ArticleRepository;
 import com.articles.NewsDownloader.service.DownloadService;
+import com.articles.NewsDownloader.util.ArticlesUtil;
 import com.articles.NewsDownloader.util.BlacklistUtil;
 import lombok.extern.log4j.Log4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
@@ -22,15 +22,13 @@ public class DownloadController {
 
     @Value("${news-downloader.article-url}")
     private String articleUrl;
+
     private final ArticleRepository articleRepository;
     private final DownloadService downloadService;
 
-    private final ModelMapper modelMapper;
-
-    public DownloadController(ArticleRepository articleRepository, DownloadService downloadService, ModelMapper modelMapper) {
+    public DownloadController(ArticleRepository articleRepository, DownloadService downloadService) {
         this.articleRepository = articleRepository;
         this.downloadService = downloadService;
-        this.modelMapper = modelMapper;
     }
 
     public List<ArticleDTO> downloadArticles() {
@@ -41,13 +39,14 @@ public class DownloadController {
             throw new RuntimeException(e);
         }
         blackList.forEach(System.out::println);
-        return downloadService.download(articleUrl);
+        return downloadService.NewsAPIFetcher(articleUrl);
     }
 
     public void saveArticles() {
         List<ArticleDTO> articleDTOList = downloadArticles();
         for (ArticleDTO articleDTO : articleDTOList) {
-            Article article = modelMapper.map(articleDTO, Article.class);
+            Article article = ArticlesUtil.createNewFromDTO(articleDTO);
+            article.setContent(downloadService.getPageContent(articleDTO.getUrl()));
             articleRepository.save(article);
         }
         log.info("Articles saved successfully.");
