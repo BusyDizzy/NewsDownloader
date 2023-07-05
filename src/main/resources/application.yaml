@@ -1,0 +1,31 @@
+spring:
+  jpa:
+    show-sql: true
+    open-in-view: false
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 20
+        jdbc.batch_size: 20
+  datasource:
+    # ImMemory
+    url: jdbc:h2:mem:articles
+    #    tcp: jdbc:h2:tcp://localhost:9092/mem:articles
+    username: sa
+    password:
+  h2.console.enabled: true
+
+  # Jackson Serialization Issue Resolver
+  jackson.visibility:
+    field: any
+    getter: none
+    setter: none
+    is-getter: none
+
+logging:
+  level:
+    root: WARN
+    com.articles.NewsDownloader: DEBUG
