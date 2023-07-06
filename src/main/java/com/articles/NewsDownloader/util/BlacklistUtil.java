@@ -1,7 +1,10 @@
 package com.articles.NewsDownloader.util;
 
-import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,9 +15,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@UtilityClass
+@Component
+@Slf4j
+@CacheConfig(cacheNames = "blacklistedWords")
 public class BlacklistUtil {
-
+    @Cacheable
     public List<String> loadBlacklistedWords(Resource blacklistResource) throws IOException {
         List<String> blacklistedWords = new ArrayList<>();
         try (InputStream inputStream = blacklistResource.getInputStream();
