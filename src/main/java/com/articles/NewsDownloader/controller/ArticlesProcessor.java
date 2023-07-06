@@ -25,10 +25,10 @@ public class ArticlesProcessor {
     private final ArticleDownloadAndSaveService articleDownloadAndSaveService;
 
     public ArticlesProcessor(@Value("${news-downloader.blacklist}") Resource blacklistResource,
-                             ArticleDownloadAndSaveService articleDownloadAndSaveService) {
+                             ArticleDownloadAndSaveService articleDownloadAndSaveService, BlacklistUtil blacklistUtil) {
         this.articleDownloadAndSaveService = articleDownloadAndSaveService;
         try {
-            this.blacklistedWords = BlacklistUtil.loadBlacklistedWords(blacklistResource);
+            this.blacklistedWords = blacklistUtil.loadBlacklistedWords(blacklistResource);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
