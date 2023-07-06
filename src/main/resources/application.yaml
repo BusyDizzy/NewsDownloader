@@ -33,9 +33,10 @@ logging:
 news-downloader:
   article-url: "https://api.spaceflightnewsapi.net/v3/articles"
   articles:
-      limit: 5
-      total: 20
+    limit: 5
+    total: 20
   content-download-repeat-attempts: 5
+  retry-backoff-delay: 3000
   blacklist: "classpath:blacklist.txt"
 
 thread-pool:

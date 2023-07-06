@@ -6,7 +6,6 @@ import com.articles.NewsDownloader.repository.ArticleRepository;
 import com.articles.NewsDownloader.service.NewsAPIFetcher;
 import com.articles.NewsDownloader.util.ArticlesUtil;
 import com.articles.NewsDownloader.util.BlacklistUtil;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -14,8 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.Resource;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -32,7 +31,6 @@ public class StartupRunner implements ApplicationRunner {
 
     private final NewsAPIFetcher newsAPIFetcher;
     private final ArticleRepository articleRepository;
-
     private final ExecutorService executorService;
     private final List<String> blacklistedWords;
     @Value("${thread-pool.count}")
@@ -50,20 +48,15 @@ public class StartupRunner implements ApplicationRunner {
     // Buffer for storing articles, one queue per site
     private final ConcurrentHashMap<String, ConcurrentLinkedQueue<Article>> buffer = new ConcurrentHashMap<>();
 
-    private final RetryTemplate retryTemplate;
-
     private final RestTemplate restTemplate = new RestTemplate();
 
     public StartupRunner(NewsAPIFetcher newsAPIFetcher,
                          ArticleRepository articleRepository,
                          @Value("${thread-pool.count}") int threadCount,
-                         @Value("${news-downloader.content-download-repeat-attempts}") int contentDownloadRetryAttempts,
                          @Value("${news-downloader.blacklist}") Resource blacklistResource) {
         this.newsAPIFetcher = newsAPIFetcher;
         this.articleRepository = articleRepository;
         this.executorService = Executors.newFixedThreadPool(threadCount);
-        this.retryTemplate = new RetryTemplate();
-        this.retryTemplate.setRetryPolicy(new SimpleRetryPolicy(contentDownloadRetryAttempts));
         try {
             this.blacklistedWords = BlacklistUtil.loadBlacklistedWords(blacklistResource);
         } catch (IOException e) {
@@ -73,22 +66,20 @@ public class StartupRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < threadCount; i++) {
             log.info("Thread " + i + " has started");
-            executorService.submit(this::fetchAndProcessArticles);
+            futures.add(CompletableFuture.runAsync(this::fetchAndProcessArticles, executorService));
         }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         // shut down the executor service so no more tasks can be submitted
         executorService.shutdown();
-
-        // process any remaining articles in the buffer
-        log.info("Save articles if anything left in buffer");
-        for (ConcurrentLinkedQueue<Article> queue : buffer.values()) {
-            downloadAndSaveArticles(queue);
-        }
+        log.info("Finishing run");
     }
 
+    @Retryable(maxAttemptsExpression = "${news-downloader.content-download-repeat-attempts}",
+            backoff = @Backoff(delayExpression = "${news-downloader.retry-backoff-delay}"))
     private void fetchAndProcessArticles() {
         int currentOffset;
         while ((currentOffset = offset.getAndAdd(articlesPerThreadLimit)) < totalRecordsToDownload) {
@@ -107,15 +98,15 @@ public class StartupRunner implements ApplicationRunner {
                 queue.add(article);
 
                 if (queue.size() >= bufferLimit) {
-                    log.info("Starting download of the queue in buffer");
+                    log.info("Starting download of the queue in buffer for site: " + article.getNewsSiteName());
                     downloadAndSaveArticles(queue);
                 }
             }
-        }
-        // process any remaining articles in the buffer
-        log.info("Finalizing download of articles which queue doesn't exceed buffer size");
-        for (ConcurrentLinkedQueue<Article> queue : buffer.values()) {
-            downloadAndSaveArticles(queue);
+
+            log.info("Save articles if anything left in buffer");
+            for (ConcurrentLinkedQueue<Article> queue : buffer.values()) {
+                downloadAndSaveArticles(queue);
+            }
         }
     }
 
@@ -123,36 +114,39 @@ public class StartupRunner implements ApplicationRunner {
         return blacklistedWords.stream().anyMatch(title::contains);
     }
 
-    // In case of any errors occurred during content download we repeat the attempt using Spring RetryTemplate class
+    // In case of any errors occurred during content download we repeat the attempt using @Retryable
+    @Retryable(maxAttemptsExpression = "${news-downloader.content-download-repeat-attempts}",
+            backoff = @Backoff(delayExpression = "${news-downloader.retry-backoff-delay}"))
     private void downloadAndSaveArticles(ConcurrentLinkedQueue<Article> queue) {
-        List<Article> articles = new ArrayList<>();
         Article article;
         while ((article = queue.poll()) != null) {
             Article finalArticle = article;
-            String content = retryTemplate.execute(arg0 -> downloadArticle(finalArticle.getUrl()));
-            article.setArticleContent(content);
-            articles.add(article);
+            CompletableFuture.runAsync(() -> {
+                try {
+                    log.info("Downloading content for article with URL: " + finalArticle.getUrl());
+                    String content = downloadArticle(finalArticle.getUrl());
+                    finalArticle.setArticleContent(content);
+                    log.info("Saving article with title: " + finalArticle.getTitle());
+                    articleRepository.save(finalArticle);
+                } catch (Exception ex) {
+                    log.error("Error occurred while downloading or saving the article: " + ex.getMessage());
+                    throw new RuntimeException(ex);
+                }
+            }, executorService).exceptionally(ex -> {
+                log.error("Exception occurred in CompletableFuture", ex);
+                throw new RuntimeException(ex);
+            });
         }
-        retryTemplate.execute(arg0 -> {
-            articleRepository.saveAll(articles);
-            return null;
-        });
     }
 
+    @Retryable(maxAttemptsExpression = "${news-downloader.content-download-repeat-attempts}",
+            backoff = @Backoff(delayExpression = "${news-downloader.retry-backoff-delay}"))
     private synchronized String downloadArticle(String url) {
         try {
             Document document = Jsoup.connect(url).get();
             return document.body().text();
         } catch (IOException e) {
             throw new RuntimeException("Error fetching content from URL: " + url, e);
-        }
-    }
-
-    @PreDestroy
-    public void shutdownExecutorService() {
-        if (executorService != null) {
-            log.info("Post destroy executor service shutdown");
-            executorService.shutdown();
         }
     }
 }
