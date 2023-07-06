@@ -15,10 +15,8 @@ import java.util.List;
 @Service
 @Log4j
 public class NewsAPIFetcherImpl implements NewsAPIFetcher {
-
     @Override
-    public List<ArticleDTO> fetchArticles(String url) {
-        RestTemplate restTemplate = new RestTemplate();
+    public List<ArticleDTO> fetchArticles(RestTemplate restTemplate, String url) {
         ResponseEntity<List<ArticleDTO>> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,

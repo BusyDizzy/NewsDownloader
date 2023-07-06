@@ -35,9 +35,9 @@ news-downloader:
   articles:
       limit: 5
       total: 20
-  blacklist: "blacklist.txt"
+  content-download-repeat-attempts: 5
+  blacklist: "classpath:blacklist.txt"
 
 thread-pool:
   count: 2
   buffer-limit: 5
-  fetching-timeout: 3
