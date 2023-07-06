@@ -26,12 +26,14 @@ public class Article {
     private String title;
 
     @Column(name = "news_site", nullable = false)
-    private String newsSite;
+    private String newsSiteName;
+
+    private String url;
 
     @Column(name = "published_date", nullable = false)
     private LocalDateTime publishedAt;
 
     @Column(name = "article", columnDefinition = "TEXT")
-    private String content;
+    private String articleContent;
 }
 

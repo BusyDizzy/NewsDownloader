@@ -33,6 +33,11 @@ logging:
 news-downloader:
   article-url: "https://api.spaceflightnewsapi.net/v3/articles"
   articles:
-      limit: 10
-      skipped: 0
+      limit: 5
+      total: 20
   blacklist: "blacklist.txt"
+
+thread-pool:
+  count: 2
+  buffer-limit: 5
+  fetching-timeout: 3
