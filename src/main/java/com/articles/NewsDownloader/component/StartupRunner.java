@@ -1,5 +1,6 @@
-package com.articles.NewsDownloader.controller;
+package com.articles.NewsDownloader.component;
 
+import com.articles.NewsDownloader.service.ArticlesFetcherService;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,14 +18,14 @@ import java.util.concurrent.Executors;
 @Log4j
 public class StartupRunner implements ApplicationRunner {
 
-    private final ArticlesFetcher articlesFetcher;
+    private final ArticlesFetcherService articlesFetcherService;
     private final ExecutorService executorService;
     @Value("${thread-pool.count}")
     private int threadCount;
 
-    public StartupRunner(ArticlesFetcher articlesFetcher,
+    public StartupRunner(ArticlesFetcherService articlesFetcherService,
                          @Value("${thread-pool.count}") int threadCount) {
-        this.articlesFetcher = articlesFetcher;
+        this.articlesFetcherService = articlesFetcherService;
         this.executorService = Executors.newFixedThreadPool(threadCount);
     }
 
@@ -33,7 +34,7 @@ public class StartupRunner implements ApplicationRunner {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < threadCount; i++) {
             log.info("Thread " + i + " has started");
-            futures.add(CompletableFuture.runAsync(articlesFetcher::fetchAndProcessArticles, executorService));
+            futures.add(CompletableFuture.runAsync(articlesFetcherService::fetchAndProcessArticles, executorService));
         }
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();

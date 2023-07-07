@@ -1,4 +1,4 @@
-package com.articles.NewsDownloader.util;
+package com.articles.NewsDownloader.component;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheConfig;

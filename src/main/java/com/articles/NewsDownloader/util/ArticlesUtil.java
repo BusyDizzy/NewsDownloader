@@ -1,7 +1,7 @@
 package com.articles.NewsDownloader.util;
 
 import com.articles.NewsDownloader.dto.ArticleDTO;
-import com.articles.NewsDownloader.model.Article;
+import com.articles.NewsDownloader.entity.Article;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

@@ -1,4 +1,4 @@
-package com.articles.NewsDownloader.model;
+package com.articles.NewsDownloader.entity;
 
 
 import jakarta.persistence.*;
