@@ -2,7 +2,7 @@ package com.articles.NewsDownloader;
 
 import com.articles.NewsDownloader.dto.ArticleDTO;
 import com.articles.NewsDownloader.exception.ArticleFetchingException;
-import com.articles.NewsDownloader.service.impl.NewsAPIFetcherImpl;
+import com.articles.NewsDownloader.service.NewsAPIFetcherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -28,10 +28,10 @@ import static org.mockito.Mockito.when;
 
 
 @SpringBootTest
-public class NewsAPIFetcherTest {
+public class NewsAPIFetcherServiceTest {
 
     @InjectMocks
-    private NewsAPIFetcherImpl newsAPIFetcherImpl;
+    private NewsAPIFetcherService newsAPIFetcherService;
 
     @Mock
     private RestTemplate restTemplate;
@@ -47,8 +47,6 @@ public class NewsAPIFetcherTest {
     public void setup() {
         MockitoAnnotations.openMocks(this);
     }
-
-
     @Test
     public void testFetchArticlesWithValidURL() {
         // Arrange
@@ -72,9 +70,8 @@ public class NewsAPIFetcherTest {
             return callback.doWithRetry(null);
         });
 
-
         // Act
-        List<ArticleDTO> actualResponse = newsAPIFetcherImpl.fetchArticles(restTemplate, validUrl);
+        List<ArticleDTO> actualResponse = newsAPIFetcherService.fetchArticles(restTemplate, validUrl);
 
         // Assert
         assertEquals(expectedResponse, actualResponse);
@@ -98,10 +95,9 @@ public class NewsAPIFetcherTest {
             return callback.doWithRetry(null);
         });
 
-
         // Act and Assert
         assertThrows(ArticleFetchingException.class, () -> {
-            newsAPIFetcherImpl.fetchArticles(restTemplate, invalidUrl);
+            newsAPIFetcherService.fetchArticles(restTemplate, invalidUrl);
         });
     }
 }

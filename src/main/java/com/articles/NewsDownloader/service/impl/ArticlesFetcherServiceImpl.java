@@ -4,7 +4,7 @@ import com.articles.NewsDownloader.dto.ArticleDTO;
 import com.articles.NewsDownloader.exception.ArticleFetchingException;
 import com.articles.NewsDownloader.service.ArticlesFetcherService;
 import com.articles.NewsDownloader.service.ArticlesProcessorService;
-import com.articles.NewsDownloader.service.NewsAPIFetcher;
+import com.articles.NewsDownloader.service.NewsAPIFetcherService;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Log4j
 public class ArticlesFetcherServiceImpl implements ArticlesFetcherService {
 
-    private final NewsAPIFetcher newsAPIFetcher;
+    private final NewsAPIFetcherService newsAPIFetcherService;
     private final ArticlesProcessorService articlesProcessorService;
     private final RestTemplate restTemplate;
     private final AtomicInteger offset = new AtomicInteger(0);
@@ -28,9 +28,10 @@ public class ArticlesFetcherServiceImpl implements ArticlesFetcherService {
     @Value("${news-downloader.article-url}")
     private String articlesAPIUrl;
 
-    public ArticlesFetcherServiceImpl(NewsAPIFetcher newsAPIFetcher, ArticlesProcessorService articlesProcessorService,
+    public ArticlesFetcherServiceImpl(NewsAPIFetcherService newsAPIFetcherService,
+                                      ArticlesProcessorService articlesProcessorService,
                                       RestTemplate restTemplate) {
-        this.newsAPIFetcher = newsAPIFetcher;
+        this.newsAPIFetcherService = newsAPIFetcherService;
         this.articlesProcessorService = articlesProcessorService;
         this.restTemplate = restTemplate;
     }
@@ -42,7 +43,7 @@ public class ArticlesFetcherServiceImpl implements ArticlesFetcherService {
             String apiUrl = String.format("%s?_limit=%d&_start=%d", articlesAPIUrl, articlesPerThreadLimit, currentOffset);
 
             try {
-                List<ArticleDTO> articleDTOs = newsAPIFetcher.fetchArticles(restTemplate, apiUrl);
+                List<ArticleDTO> articleDTOs = newsAPIFetcherService.fetchArticles(restTemplate, apiUrl);
                 articlesProcessorService.processArticles(articleDTOs);
             } catch (Exception e) {
                 throw new ArticleFetchingException("Error while fetching articles.", e);

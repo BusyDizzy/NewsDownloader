@@ -2,7 +2,7 @@ package com.articles.NewsDownloader.service.impl;
 
 import com.articles.NewsDownloader.dto.ArticleDTO;
 import com.articles.NewsDownloader.exception.ArticleFetchingException;
-import com.articles.NewsDownloader.service.NewsAPIFetcher;
+import com.articles.NewsDownloader.service.NewsAPIFetcherService;
 import lombok.extern.log4j.Log4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -15,11 +15,11 @@ import java.util.List;
 
 @Service
 @Log4j
-public class NewsAPIFetcherImpl implements NewsAPIFetcher {
+public class NewsAPIFetcherServiceImpl implements NewsAPIFetcherService {
 
     private final RetryTemplate retryTemplate;
 
-    public NewsAPIFetcherImpl(RetryTemplate retryTemplate) {
+    public NewsAPIFetcherServiceImpl(RetryTemplate retryTemplate) {
         this.retryTemplate = retryTemplate;
     }
 
