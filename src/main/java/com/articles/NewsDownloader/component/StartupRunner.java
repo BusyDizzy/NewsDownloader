@@ -2,7 +2,7 @@ package com.articles.NewsDownloader.component;
 
 import com.articles.NewsDownloader.service.ArticlesFetcherService;
 import jakarta.annotation.PreDestroy;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Component
-@Log4j
+@Slf4j
 public class StartupRunner implements ApplicationRunner {
 
     private final ArticlesFetcherService articlesFetcherService;
@@ -33,7 +33,7 @@ public class StartupRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < threadCount; i++) {
-            log.info("Thread " + i + " has started");
+            log.info("Thread {} has started", i);
             futures.add(CompletableFuture.runAsync(articlesFetcherService::fetchAndProcessArticles, executorService));
         }
 

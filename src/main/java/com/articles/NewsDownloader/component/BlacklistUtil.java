@@ -26,6 +26,7 @@ public class BlacklistUtil {
              InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              BufferedReader reader = new BufferedReader(inputStreamReader)) {
             String line;
+            log.info("Uploading blacklist from a file: {}", blacklistResource.getFilename());
             while ((line = reader.readLine()) != null) {
                 blacklistedWords.addAll(Arrays.asList(line.split(" ", -1)));
             }

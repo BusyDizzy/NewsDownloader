@@ -12,7 +12,10 @@ public class TestData {
 
     public static final MatcherFactory.Matcher<Article> ARTICLE_MATCHER = MatcherFactory.usingIgnoringFieldsComparator(Article.class, "articleContent", "id");
 
-    public static final Article article1 = new Article(1L, "SpaceX completes 28th commercial resupply mission to ISS", "Teslarati",
+    public static final Long ARTICLE1_ID = 1L;
+
+    public static final Long NOT_FOUND = 100L;
+    public static final Article article1 = new Article(ARTICLE1_ID, "SpaceX completes 28th commercial resupply mission to ISS", "Teslarati",
             "https://www.teslarati.com/spacex-completes-28th-commercial-resupply-mission-to-iss/",
             LocalDateTime.parse("2023-07-06T16:14:48", DATE_TIME_FORMATTER), null);
     public static final Article article2 = new Article(2L, "Ariane V goes out in style, retires after 27 years of service", "Teslarati",
@@ -86,5 +89,6 @@ public class TestData {
             article5, article6, article7, article8, article9, article10, article11, article12,
             article13, article14, article15, article16, article17, article18, article19, article20
     );
-}
 
+    public static final List<Article> articlesTeslaratiSiteName = List.of(article1, article2);
+}

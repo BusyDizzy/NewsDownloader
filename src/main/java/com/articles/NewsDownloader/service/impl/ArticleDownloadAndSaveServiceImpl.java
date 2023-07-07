@@ -1,10 +1,10 @@
 package com.articles.NewsDownloader.service.impl;
 
-import com.articles.NewsDownloader.exception.ArticleProcessingException;
 import com.articles.NewsDownloader.entity.Article;
+import com.articles.NewsDownloader.exception.ArticleProcessingException;
 import com.articles.NewsDownloader.repository.ArticleRepository;
 import com.articles.NewsDownloader.service.ArticleDownloadAndSaveService;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 @Service
-@Log4j
+@Slf4j
 public class ArticleDownloadAndSaveServiceImpl implements ArticleDownloadAndSaveService {
     @Autowired
     private ExecutorService executorService;
@@ -42,7 +42,7 @@ public class ArticleDownloadAndSaveServiceImpl implements ArticleDownloadAndSave
             try {
                 future.get();
             } catch (InterruptedException | ExecutionException e) {
-                log.error("Error occurred while downloading or saving the article: " + e.getMessage());
+                log.error("Error occurred while downloading or saving the article {}: ", e.getMessage());
                 throw new ArticleProcessingException("Error occurred while downloading or saving the article.", e);
             }
         });

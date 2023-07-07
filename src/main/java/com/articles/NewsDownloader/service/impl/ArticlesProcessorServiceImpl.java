@@ -7,7 +7,7 @@ import com.articles.NewsDownloader.exception.ArticleProcessingException;
 import com.articles.NewsDownloader.service.ArticleDownloadAndSaveService;
 import com.articles.NewsDownloader.service.ArticlesProcessorService;
 import com.articles.NewsDownloader.util.ArticlesUtil;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Service
-@Log4j
+@Slf4j
 public class ArticlesProcessorServiceImpl implements ArticlesProcessorService {
     private final List<String> blacklistedWords;
     @Value("${thread-pool.buffer-limit}")
@@ -50,7 +50,7 @@ public class ArticlesProcessorServiceImpl implements ArticlesProcessorService {
                 ConcurrentLinkedQueue<Article> queue = buffer.computeIfAbsent(article.getNewsSiteName(), k -> new ConcurrentLinkedQueue<>());
                 queue.add(article);
                 if (queue.size() >= bufferLimit) {
-                    log.info("Starting download of the queue in buffer for site: " + article.getNewsSiteName());
+                    log.info("Starting download of the queue in buffer for site: {}", article.getNewsSiteName());
                     articleDownloadAndSaveService.downloadAndSaveArticles(queue);
                 }
             }
@@ -61,7 +61,7 @@ public class ArticlesProcessorServiceImpl implements ArticlesProcessorService {
             }
         } else {
             log.info("Received an empty Articles list");
-            throw new ArticleProcessingException("Error occurred while processing Articles: no articles were downloaded");
+            throw new ArticleProcessingException("Error occurred while processing articles: no articles were downloaded");
         }
     }
 

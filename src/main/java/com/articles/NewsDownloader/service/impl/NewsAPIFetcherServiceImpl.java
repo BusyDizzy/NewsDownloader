@@ -3,7 +3,7 @@ package com.articles.NewsDownloader.service.impl;
 import com.articles.NewsDownloader.dto.ArticleDTO;
 import com.articles.NewsDownloader.exception.ArticleFetchingException;
 import com.articles.NewsDownloader.service.NewsAPIFetcherService;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -14,17 +14,18 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 
 @Service
-@Log4j
+@Slf4j
 public class NewsAPIFetcherServiceImpl implements NewsAPIFetcherService {
 
     private final RetryTemplate retryTemplate;
-
-    public NewsAPIFetcherServiceImpl(RetryTemplate retryTemplate) {
+    private final RestTemplate restTemplate;
+    public NewsAPIFetcherServiceImpl(RetryTemplate retryTemplate, RestTemplate restTemplate) {
         this.retryTemplate = retryTemplate;
+        this.restTemplate = restTemplate;
     }
 
     @Override
-    public List<ArticleDTO> fetchArticles(RestTemplate restTemplate, String url) {
+    public List<ArticleDTO> fetchArticles(String url) {
         return retryTemplate.execute(context -> {
             ResponseEntity<List<ArticleDTO>> response = restTemplate.exchange(
                     url,
@@ -36,7 +37,7 @@ public class NewsAPIFetcherServiceImpl implements NewsAPIFetcherService {
             if (response.getBody() == null) {
                 throw new ArticleFetchingException("No articles fetched from URL: " + url);
             }
-            log.info("Fetching is finished for articles from URL: " + url);
+            log.info("Fetching is finished for articles from URL: {}", url);
             return response.getBody();
         });
     }
