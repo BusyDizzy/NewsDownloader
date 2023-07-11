@@ -17,7 +17,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
-import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.web.client.RestTemplate;
 
 import java.sql.SQLException;
@@ -30,8 +30,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 @Configuration
 @Slf4j
-@EnableAsync
-public class AppConfig {
+public class AppConfig implements AsyncConfigurer {
 
     @Value("${thread-pool.count}")
     private int threadCount;

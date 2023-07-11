@@ -9,7 +9,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.support.RetryTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -42,21 +41,23 @@ public class ArticleDownloadAndSaveServiceImpl implements ArticleDownloadAndSave
             try {
                 future.get();
             } catch (InterruptedException | ExecutionException e) {
-                log.error("Error occurred while downloading or saving the article {}: ", e.getMessage());
+                log.error("Error occurred while downloading or saving the article on thread {}: {}",
+                        Thread.currentThread().getName(), e.getMessage());
                 throw new ArticleProcessingException("Error occurred while downloading or saving the article.", e);
             }
         });
     }
 
-    @Async
     @Override
     public Future<Void> downloadAndSaveArticle(Article article) {
         return CompletableFuture.runAsync(() -> retryTemplate.execute(context -> {
             try {
-                log.info("Downloading content for article with URL: " + article.getUrl());
+                log.info("Thread {}: Downloading content for article with URL: {}",
+                        Thread.currentThread().getName(), article.getUrl());
                 String content = downloadArticle(article.getUrl());
                 article.setArticleContent(content);
-                log.info("Saving article with title: " + article.getTitle());
+                log.info("Thread {}: Saving article with title: {}",
+                        Thread.currentThread().getName(), article.getTitle());
                 articleRepository.save(article);
                 return null;
             } catch (Exception ex) {

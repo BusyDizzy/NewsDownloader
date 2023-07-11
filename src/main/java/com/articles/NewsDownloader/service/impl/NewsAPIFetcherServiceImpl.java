@@ -37,7 +37,8 @@ public class NewsAPIFetcherServiceImpl implements NewsAPIFetcherService {
             if (response.getBody() == null) {
                 throw new ArticleFetchingException("No articles fetched from URL: " + url);
             }
-            log.info("Fetching is finished for articles from URL: {}", url);
+            log.info("Thread Name: {} Fetching is finished for articles from URL: {}. ",
+                    Thread.currentThread().getName(), url);
             return response.getBody();
         });
     }

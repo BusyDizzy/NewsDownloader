@@ -40,7 +40,7 @@ news-downloader:
   blacklist: "classpath:blacklist.txt"
 
 thread-pool:
-  count: 2
+  count: 10
   buffer-limit: 5
 
 server.servlet:

@@ -50,13 +50,15 @@ public class ArticlesProcessorServiceImpl implements ArticlesProcessorService {
                 ConcurrentLinkedQueue<Article> queue = buffer.computeIfAbsent(article.getNewsSiteName(), k -> new ConcurrentLinkedQueue<>());
                 queue.add(article);
                 if (queue.size() >= bufferLimit) {
-                    log.info("Starting download of the queue in buffer for site: {}", article.getNewsSiteName());
+                    log.info("Thread {}: Starting download of the queue in buffer for site: {}",
+                            Thread.currentThread().getName(), article.getNewsSiteName());
                     articleDownloadAndSaveService.downloadAndSaveArticles(queue);
                 }
             }
 
-            log.info("Save articles if anything left in buffer");
             for (ConcurrentLinkedQueue<Article> queue : buffer.values()) {
+                log.info("Thread {}: Starting download of articles left in buffer",
+                        Thread.currentThread().getName());
                 articleDownloadAndSaveService.downloadAndSaveArticles(queue);
             }
         } else {
